@@ -75,6 +75,7 @@ export default ($action) => {
       })
       .map(action => {
         let restart = action.restart;
+        let fullRestart = action.fullRestart;
         let node = action.clickedNode;
         let text = Text(node.shortname, node, restart);
         let previousColor = node.color;
@@ -89,7 +90,8 @@ export default ($action) => {
         // Backspace
         let $backspace = Rx.Observable.fromEvent(document, "keydown")
             .filter(e => e.keyCode === 8 && e.keyCode !== 13)
-            .do(_ => text.deleteText());
+            .do(_ => text.deleteText())
+            .do(fullRestart);
         
         // Letters
         let $letters = Rx.Observable.fromEvent(document, "keypress")
@@ -101,7 +103,8 @@ export default ($action) => {
                 let event = e || window.event;
                 let char = String.fromCharCode(e.keyCode || e.which)
                 text.addLetter(char);
-            });
+            })
+            .do(fullRestart);
 
         let $newLine = Rx.Observable.fromEvent(document, "keypress")
             .filter(e => e.keyCode === 13)
@@ -112,6 +115,7 @@ export default ($action) => {
                 }
                 text.newLine();
             })
+            .do(fullRestart)
         
         let $interval = Rx.Observable
             .interval(500 /* ms */)
@@ -135,7 +139,7 @@ export default ($action) => {
             .finally(_ => {
                 node.color = previousColor;
                 node.shortname = text.getText();
-                restart();
+                fullRestart();
             })
         return $typingControls
     })
